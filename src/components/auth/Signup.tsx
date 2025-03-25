@@ -5,6 +5,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { FloatLabelInput } from "../common/FloatLabelInput";
 import { Button } from "../ui/button";
 import { useMutation } from "@tanstack/react-query";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "../ui/input-otp";
 
 interface Props {
   setView: Dispatch<SetStateAction<string>>;
@@ -13,6 +14,7 @@ interface Props {
 export default function SignUp({ setView }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [confirmationRequired, setConfirmationRequired] = useState(false);
 
   const supabase = createBrowserSupabaseClient();
@@ -38,9 +40,35 @@ export default function SignUp({ setView }: Props) {
     },
   });
 
+  //otp signup mutation
+  const { mutate: signupOTPMutate, isPending: otpIsPending } = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.auth.verifyOtp({
+        type: "signup",
+        email,
+        token: otp,
+      });
+
+      if (data) {
+        setConfirmationRequired(true);
+      }
+
+      if (error) {
+        alert(error.message);
+      }
+    },
+  });
+
   const handleSignup = () => {
-    signupMutate();
+    if (confirmationRequired) {
+      signupOTPMutate();
+    } else {
+      signupMutate();
+    }
   };
+
+  // TODO : 로딩 중 Backdrop 추가
+  // TODO : 회원가입 완료 후 input state 초기화
 
   return (
     <div className="flex flex-col gap-4">
@@ -50,10 +78,29 @@ export default function SignUp({ setView }: Props) {
 
         {/** Input Field */}
         <div className="flex flex-col gap-4">
-          <FloatLabelInput id="email" label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <FloatLabelInput id="password" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          {confirmationRequired ? (
+            <InputOTP maxLength={6} value={otp} onChange={(value) => setOtp(value)}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+              </InputOTPGroup>
+              <InputOTPSeparator />
+              <InputOTPGroup>
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          ) : (
+            <>
+              <FloatLabelInput id="email" label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <FloatLabelInput id="password" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </>
+          )}
           <Button className="h-10 rounded-md text-sm bg-blue-500 font-bold" onClick={handleSignup}>
-            {isPending ? "Loading..." : "회원가입"}
+            {confirmationRequired && isPending ? "Loading..." : "회원가입"}
+            {confirmationRequired && otpIsPending ? "Loading..." : "확인"}
           </Button>
         </div>
       </div>
