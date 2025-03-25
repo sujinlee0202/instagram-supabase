@@ -4,6 +4,7 @@ import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { FloatLabelInput } from "../common/FloatLabelInput";
 import { Button } from "../ui/button";
+import { useMutation } from "@tanstack/react-query";
 
 interface Props {
   setView: Dispatch<SetStateAction<string>>;
@@ -15,6 +16,23 @@ export default function SignUp({ setView }: Props) {
 
   const supabase = createBrowserSupabaseClient();
 
+  const { mutate: signinMutation, isPending } = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        alert(error.message);
+      }
+    },
+  });
+
+  const handleLogin = () => {
+    signinMutation();
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="pt-10 pb-6 px-10 w-full flex flex-col items-center justify-center max-w-xl border border-gray-400 bg-white gap-2">
@@ -25,7 +43,9 @@ export default function SignUp({ setView }: Props) {
         <div className="flex flex-col gap-4">
           <FloatLabelInput id="email" label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
           <FloatLabelInput id="password" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <Button className="h-10 rounded-md text-sm bg-blue-500 font-bold">로그인</Button>
+          <Button className="h-10 rounded-md text-sm bg-blue-500 font-bold" onClick={handleLogin} disabled={isPending}>
+            로그인
+          </Button>
         </div>
       </div>
 
