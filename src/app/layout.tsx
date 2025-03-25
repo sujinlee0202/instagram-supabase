@@ -3,23 +3,30 @@ import "./globals.css";
 import ReactQueryProvider from "@/config/ReactQueryProvider";
 import MainLayout from "./(main)/layout";
 import Auth from "@/components/auth";
+import { createServerSupabaseClient } from "@/utils/supabase/server";
+import AuthProvider from "@/config/AuthProvider";
 
 export const metadata: Metadata = {
   title: "Supabase Instagram",
   description: "Supabase Instagram App",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isLogin = false;
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase.auth.getSession();
+  const isLogin = data.session?.user;
+
   return (
     <html lang="en">
       <head></head>
       <body>
-        <ReactQueryProvider>{isLogin ? <MainLayout>{children}</MainLayout> : <Auth />}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <AuthProvider accessToken={data.session?.access_token}>{isLogin ? <MainLayout>{children}</MainLayout> : <Auth />}</AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
