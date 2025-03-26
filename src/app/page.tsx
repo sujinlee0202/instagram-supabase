@@ -1,5 +1,10 @@
 import MainPage from "./(main)/_main/page";
+import MainLayout from "./(main)/layout";
 
 export default function Home() {
-  return <MainPage />;
+  return (
+    <MainLayout>
+      <MainPage />
+    </MainLayout>
+  );
 }

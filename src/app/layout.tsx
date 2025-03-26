@@ -21,11 +21,13 @@ export default async function RootLayout({
   const isLogin = data.session?.user;
 
   return (
-    <html lang="en">
+    <html lang='en'>
       <head></head>
       <body>
         <ReactQueryProvider>
-          <AuthProvider accessToken={data.session?.access_token}>{isLogin ? <MainLayout>{children}</MainLayout> : <Auth />}</AuthProvider>
+          <AuthProvider accessToken={data.session?.access_token}>
+            {isLogin ? children : <Auth />}
+          </AuthProvider>
         </ReactQueryProvider>
       </body>
     </html>

@@ -16,6 +16,7 @@ export default function SignUp({ setView }: Props) {
 
   const supabase = createBrowserSupabaseClient();
 
+  // kakao signin
   const signInWithKakao = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
