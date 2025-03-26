@@ -9,7 +9,7 @@ dayjs.extend(relativeTime);
 interface Props {
   index: number;
   userId: string;
-  name: string;
+  name: string | undefined;
   onlineAt: string;
   onChatScreen: boolean;
   isActived: boolean;

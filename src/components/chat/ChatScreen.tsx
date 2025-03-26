@@ -4,15 +4,34 @@ import React from "react";
 import Person from "./Person";
 import Message from "./Message";
 import useChatStore from "@/store/useChatStore";
+import { useQuery } from "@tanstack/react-query";
+import { getUserById } from "@/actions/chatActions";
 
 export default function ChatScreen() {
   const [message, setMessage] = React.useState("");
-  const selectedIndex = useChatStore((state) => state.selectedIndex);
+  const selectedIndexState = useChatStore((state) => state.selectedIndexState);
+  const selectedUserIndex = useChatStore((state) => state.selectedUserIndex);
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["user", selectedIndexState],
+    queryFn: async () => {
+      const user = await getUserById(selectedIndexState);
+      return user;
+    },
+  });
 
-  return selectedIndex ? (
+  console.log("data", selectedIndexState);
+
+  return selectedIndexState !== "0" ? (
     <div className="w-full h-screen flex flex-col">
       {/** User */}
-      <Person index={0} isActived={false} name="sujin" onChatScreen={true} onlineAt={new Date().toISOString()} userId="sujin" onClick={() => {}} />
+      <Person
+        index={selectedUserIndex}
+        isActived={selectedIndexState === data?.id}
+        name={data?.email?.split("@")[0] ?? ""}
+        onChatScreen={false}
+        onlineAt={new Date().toISOString()}
+        userId={data?.id ?? ""}
+      />
 
       {/** Chat Field */}
       <div className="w-full overflow-y-scroll flex-1 flex flex-col p-4 gap-3">

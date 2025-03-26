@@ -1,13 +1,17 @@
 import { create } from "zustand";
 
 interface ChatStore {
-  selectedIndex: number;
-  setSelectedIndex: (index: number) => void;
+  selectedIndexState: string;
+  setSelectedIndexState: (index: string) => void;
+  selectedUserIndex: number;
+  setSelectedUserIndex: (index: number) => void;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
-  selectedIndex: 0, // 초기값 설정
-  setSelectedIndex: (index: number) => set({ selectedIndex: index }),
+  selectedIndexState: "0",
+  setSelectedIndexState: (index: string) => set({ selectedIndexState: index }),
+  selectedUserIndex: 0,
+  setSelectedUserIndex: (index: number) => set({ selectedUserIndex: index }),
 }));
 
 export default useChatStore;
