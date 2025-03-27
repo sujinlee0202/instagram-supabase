@@ -7,7 +7,7 @@ export default async function ChatPage() {
   const { data } = await supabase.auth.getSession();
 
   return (
-    <div className="w-full h-screen flex justify-center items-center">
+    <div className='w-full h-screen flex justify-center items-center'>
       <ChatPeopleList logginedUser={data.session?.user} />
       <ChatScreen />
     </div>
