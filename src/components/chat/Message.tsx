@@ -5,6 +5,7 @@ interface Props {
   message: string;
   onDelete: () => void;
   isDeleted?: boolean;
+  isRead?: boolean;
 }
 
 export default function Message({
@@ -12,6 +13,7 @@ export default function Message({
   isFromMe,
   message,
   onDelete,
+  isRead,
 }: Props) {
   return (
     <div
@@ -21,6 +23,9 @@ export default function Message({
         <button onClick={onDelete} className='text-sm text-red-500'>
           삭제
         </button>
+      )}
+      {isFromMe && !isDeleted && isRead && (
+        <span className='text-xs text-gray-500'>읽음</span>
       )}
       <div
         className={`w-fit p-3 rounded-md ${
