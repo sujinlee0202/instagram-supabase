@@ -22,6 +22,11 @@ NEXT_PUBLIC_STORAGE_BUCKET=
 NEXT_PUBLIC_URL=
 ```
 
+### 예시화면
+![image](https://github.com/user-attachments/assets/73528b46-63e1-4c83-b782-b65a8bed5d7f)
+![image](https://github.com/user-attachments/assets/0579dfea-b0ae-4582-bcf0-95f127d8d59c)
+
+
 ### 사용기술
 
 - Next.js 15, Supabase, TypeScript, React
