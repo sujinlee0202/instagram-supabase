@@ -1,13 +1,26 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Person from "./Person";
 import Message from "./Message";
 import useChatStore from "@/store/useChatStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getUserById } from "@/actions/chatActions";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
-import { createServerSupabaseAdminClient } from "@/utils/supabase/server";
+
+export async function deleteMessage(messageId: string) {
+  const supabase = await createBrowserSupabaseClient();
+  const { data, error } = await supabase
+    .from("message")
+    .update({ is_deleted: true })
+    .eq("id", messageId);
+
+  if (error) {
+    throw new Error("Failed to mark the message as deleted");
+  }
+
+  return data;
+}
 
 export async function getAllMessages({ chatUserId }: { chatUserId: string }) {
   const supabase = await createBrowserSupabaseClient();
@@ -23,6 +36,8 @@ export async function getAllMessages({ chatUserId }: { chatUserId: string }) {
     .or(`receiver.eq.${chatUserId},receiver.eq.${data?.session?.user.id}`)
     .or(`sender.eq.${chatUserId},sender.eq.${data?.session?.user.id}`)
     .order("created_at", { ascending: true });
+
+  console.log(messages);
 
   if (messagesError) {
     throw new Error("Failed to get messages");
@@ -51,7 +66,7 @@ export async function sendMessage({
     .insert({
       message,
       receiver: chatUserId,
-      // sender: data?.session?.user.id,
+      sender: data?.session?.user.id,
     });
 
   if (sendMessageError) {
@@ -67,6 +82,7 @@ export default function ChatScreen() {
   const selectedIndexState = useChatStore((state) => state.selectedIndexState);
   const selectedUserIndex = useChatStore((state) => state.selectedUserIndex);
   const presenceState = useChatStore((state) => state.presenceState);
+  const dummyScrollRef = useRef<HTMLDivElement>(null);
 
   const { data, error, isLoading } = useQuery({
     queryKey: ["user", selectedIndexState],
@@ -105,6 +121,19 @@ export default function ChatScreen() {
     },
   });
 
+  const { mutate: deleteMutate } = useMutation({
+    mutationFn: async (messageId: any) => {
+      await deleteMessage(messageId);
+    },
+    onSuccess: () => {
+      refetch();
+    },
+  });
+
+  const handleDelete = (messageId: any) => {
+    deleteMutate(messageId);
+  };
+
   useEffect(() => {
     const channel = supabase
       .channel("message_postgres_changes")
@@ -125,12 +154,35 @@ export default function ChatScreen() {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "message",
+        },
+        (payload) => {
+          if (
+            payload.eventType === "UPDATE" &&
+            !payload.errors &&
+            !!payload.new
+          ) {
+            refetch();
+          }
+        }
+      )
       .subscribe();
 
     return () => {
       channel.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (dummyScrollRef.current) {
+      dummyScrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   return selectedIndexState !== "0" ? (
     <div className='w-full h-screen flex flex-col'>
@@ -146,15 +198,16 @@ export default function ChatScreen() {
 
       {/** Chat Field */}
       <div className='w-full overflow-y-scroll flex-1 flex flex-col p-4 gap-3'>
-        {messages?.map((message, index) => {
-          return (
-            <Message
-              key={index}
-              message={message.message}
-              isFromMe={message.sender !== selectedIndexState}
-            />
-          );
-        })}
+        {messages?.map((message, index) => (
+          <Message
+            key={index}
+            message={message.message}
+            isFromMe={message.sender !== selectedIndexState}
+            onDelete={() => handleDelete(message.id)}
+            isDeleted={message.is_deleted}
+          />
+        ))}
+        <div ref={dummyScrollRef} />
       </div>
 
       {/** Input Field */}
