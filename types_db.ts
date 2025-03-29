@@ -14,6 +14,7 @@ export type Database = {
           created_at: string;
           id: number;
           is_deleted: boolean;
+          is_read: boolean;
           message: string;
           receiver: string;
           sender: string;
@@ -22,6 +23,7 @@ export type Database = {
           created_at?: string;
           id?: number;
           is_deleted?: boolean;
+          is_read: boolean;
           message: string;
           receiver?: string;
           sender?: string;
@@ -30,6 +32,7 @@ export type Database = {
           created_at?: string;
           id?: number;
           is_deleted?: boolean;
+          is_read?: boolean;
           message?: string;
           receiver?: string;
           sender?: string;

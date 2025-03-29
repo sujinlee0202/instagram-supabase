@@ -76,6 +76,25 @@ export async function sendMessage({
   return messages;
 }
 
+export async function markMessagesAsRead(chatUserId: string) {
+  const supabase = await createBrowserSupabaseClient();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error && !data?.session) {
+    throw new Error("User is not authenticated");
+  }
+
+  const { error: updateError } = await supabase
+    .from("message")
+    .update({ is_read: true })
+    .eq("receiver", data?.session?.user.id)
+    .eq("sender", chatUserId);
+
+  if (updateError) {
+    throw new Error("Failed to mark messages as read");
+  }
+}
+
 export default function ChatScreen() {
   const [message, setMessage] = React.useState("");
   const supabase = createBrowserSupabaseClient();
@@ -179,6 +198,12 @@ export default function ChatScreen() {
   }, []);
 
   useEffect(() => {
+    if (selectedIndexState !== "0") {
+      markMessagesAsRead(selectedIndexState);
+    }
+  }, [selectedIndexState, messages]);
+
+  useEffect(() => {
     if (dummyScrollRef.current) {
       dummyScrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
@@ -205,6 +230,7 @@ export default function ChatScreen() {
             isFromMe={message.sender !== selectedIndexState}
             onDelete={() => handleDelete(message.id)}
             isDeleted={message.is_deleted}
+            isRead={message.is_read}
           />
         ))}
         <div ref={dummyScrollRef} />
